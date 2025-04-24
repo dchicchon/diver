@@ -1,0 +1,24 @@
+# https://taskfile.dev
+
+version: '3'
+silent: true
+
+# vars:
+#   GREETING: Hello, World!
+tasks:
+  dev:
+    desc: 'Dev Diver'
+    deps:
+      - dev-client
+      - dev-server
+    run: once
+  dev-server:
+    desc: 'Dev Server'
+    dir: server
+    cmds:
+      - ~/.air
+  dev-client:
+    desc: 'Dev Client'
+    dir: client
+    cmds:
+      - npm run dev
