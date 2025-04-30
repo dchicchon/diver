@@ -1,4 +1,4 @@
-import { RunParameters, Task } from './interface';
+import { Task } from './interface';
 
 const serverUrl = 'http://localhost:1323';
 
@@ -28,13 +28,13 @@ export const saveTask = async (task: Task) => {
 // should i be running a saved task
 // should i be running task that is not saved?
 // lets just autosave the task, I think thats fine
-export const runTask = async (runParameters: RunParameters) => {
+export const runTask = async (task: Task) => {
   const data = await fetch(`${serverUrl}/tasks/run`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(runParameters),
+    body: JSON.stringify(task),
   });
   const result = await data.json();
   return result;

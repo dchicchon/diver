@@ -10,15 +10,15 @@ tasks:
     desc: 'Dev Diver'
     deps:
       - dev-client
-      - dev-server
+      - dev-pkg
     run: once
-  dev-server:
+  dev-pkg:
     desc: 'Dev Server'
-    dir: server
+    dir: diver-pkg
     cmds:
       - ~/.air
   dev-client:
     desc: 'Dev Client'
-    dir: client
+    dir: diver-client
     cmds:
       - npm run dev

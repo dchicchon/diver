@@ -17,6 +17,7 @@ func CreateDatabase() *gorm.DB {
 
 	// migrate
 	db.AutoMigrate(&models.Task{})
+	db.AutoMigrate(&models.Job{})
 
 	return db
 

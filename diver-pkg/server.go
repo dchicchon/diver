@@ -5,11 +5,10 @@ import (
 	models "diver/models"
 	routes "diver/routes"
 	database "diver/startup"
-	"net/http"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
+	"net/http"
 )
 
 func setupDatabase() *gorm.DB {
@@ -24,12 +23,12 @@ func setupMiddleware(server *echo.Echo) {
 	}))
 }
 
-func setupEngine() chan models.Task {
+func setupEngine() chan models.Job {
 	engineChannel := engine.Start()
 	return engineChannel
 }
 
-func setupRoutes(server *echo.Echo, engineChannel chan models.Task, database *gorm.DB) {
+func setupRoutes(server *echo.Echo, engineChannel chan models.Job, database *gorm.DB) {
 	routes.Setup(database, engineChannel, server)
 }
 
@@ -39,7 +38,6 @@ func main() {
 	server.Debug = true
 	server.Logger.Debug("Starting Server...")
 
-	setupDatabase()
 	setupMiddleware(server)
 
 	database := setupDatabase()

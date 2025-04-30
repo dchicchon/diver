@@ -19,7 +19,8 @@ function Navbar(props: NavbarProps) {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.15)',
-        border: '1px solid var(--border-color)',
+        borderBottom: '1px solid',
+        borderColor: 'border.main',
       }}
     >
       <Box
@@ -28,7 +29,6 @@ function Navbar(props: NavbarProps) {
           width: '100%',
           justifyContent: 'space-between',
           margin: '0 3rem',
-          // border: '1px solid var(--border-color)',
         }}
       >
         {/* flex start */}

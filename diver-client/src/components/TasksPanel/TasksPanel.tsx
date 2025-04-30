@@ -1,18 +1,16 @@
-import {
-  Box,
-  Button,
-  Divider,
-  List,
-  ListItem,
-  ListItemButton,
-  Popover,
-  Typography,
-} from '@mui/material';
-import { useAtom } from 'jotai';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Popover from '@mui/material/Popover';
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
 import { useEffect, useState } from 'react';
 import { deleteTask, getTasks } from '../../utils/api';
 import { Task } from '../../utils/interface';
-import { selectedTask } from '../../utils/store';
+import { useAtom } from 'jotai';
+import { refreshTasksAtom, setRefreshTasksAtom } from '../../utils/store';
 
 interface TaskItemProps {
   id: string;
@@ -21,7 +19,9 @@ interface TaskItemProps {
 
 function TaskItem(props: TaskItemProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>();
-  const [, setSelectedTask] = useAtom(selectedTask);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_, setRefreshTasks] = useAtom(setRefreshTasksAtom);
+  // const [, setSelectedTask] = useAtom(selectedTask);
 
   const handlePopover = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -31,9 +31,16 @@ function TaskItem(props: TaskItemProps) {
     setAnchorEl(null);
   };
 
+  const selectTask = (id: string) => {
+    console.log({ id });
+  };
+
   const handleDeleteTask = async () => {
     const deleteResult = await deleteTask(props.id);
     console.log({ deleteResult });
+    if (deleteResult.message === 'Task Deleted') {
+      setRefreshTasks();
+    }
   };
 
   const open = Boolean(anchorEl);
@@ -65,7 +72,7 @@ function TaskItem(props: TaskItemProps) {
       }
       disablePadding
     >
-      <ListItemButton onClick={() => setSelectedTask(props.name)}>
+      <ListItemButton onClick={() => selectTask(props.name)}>
         <Typography variant="body2">{props.name}</Typography>
       </ListItemButton>
     </ListItem>
@@ -73,11 +80,14 @@ function TaskItem(props: TaskItemProps) {
 }
 
 function TasksPanel() {
+  // lets use jotai to handle our refresh
   const [tasks, setTasks] = useState([]);
+  const [refreshTasks] = useAtom(refreshTasksAtom);
 
+  // we should rerun this effect when we delete a task
   useEffect(() => {
     handleGetTasks();
-  }, []);
+  }, [refreshTasks]);
 
   //   here's where jotoi comes in i think
   const handleGetTasks = async () => {
@@ -96,12 +106,13 @@ function TasksPanel() {
     <Box
       id="side-panel"
       sx={{
-        width: '15%',
+        width: '25%',
         height: '100%',
-        border: '1px solid var(--border-color)',
+        borderRight: '1px solid',
+        borderColor: 'border.main',
       }}
     >
-      <Box display="flex" alignItems={'center'}>
+      <Box display="flex" alignItems="center" justifyContent="center">
         <Typography variant="body1">Requests</Typography>
       </Box>
       <List>

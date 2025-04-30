@@ -1,8 +1,9 @@
 import Box from '@mui/material/Box';
 import Navbar from '../../components/Navbar';
 import TasksPanel from '../../components/TasksPanel';
-import MainPanel from '../../components/MainPanel';
 import SaveModal from '../../components/SaveModal';
+import RequestTabs from '../../components/RequestTabs';
+import RequestPanel from '../../components/RequestPanel';
 
 function Diver() {
   return (
@@ -19,14 +20,16 @@ function Diver() {
         id="content-panel"
         sx={{
           display: 'flex',
-          border: '1px solid var(--border-color)',
           height: '100%',
         }}
       >
         <TasksPanel />
-        <MainPanel />
-        <SaveModal />
+        <Box sx={{ width: '75%' }} id="main-panel">
+          <RequestTabs />
+          <RequestPanel />
+        </Box>
       </Box>
+      <SaveModal />
     </Box>
   );
 }

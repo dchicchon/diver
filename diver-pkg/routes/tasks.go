@@ -2,15 +2,23 @@ package routes
 
 import (
 	models "diver/models"
+	"encoding/json"
 	"fmt"
-	// "io"
-	// "log"
-	"github.com/labstack/echo/v4"
 	"net/http"
+
+	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+	"gorm.io/datatypes"
 )
 
+func response(message string) *Response {
+	return &Response{
+		Message: message,
+	}
+}
+
 type Response struct {
-	Results models.Task
+	Message string `json:"message" xml:"message"`
 }
 
 // maybe this should be a class or something?
@@ -20,102 +28,85 @@ func GetTask(c echo.Context) error {
 
 func GetTasks(c echo.Context) error {
 	var tasks []models.Task
-
 	result := db.Find(&tasks)
 	// fmt.Println(result)
 	if result.Error != nil {
 		return c.JSON(http.StatusBadRequest, "Unable to retrieve tasks")
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return c.JSON(http.StatusOK, map[string]any{
 		"results": tasks,
 	})
 }
 
 func RunTask(c echo.Context) error {
-	exampleTask := models.Task{
-		Name: "Example Task",
+
+	t := new(models.Task)
+	if err := c.Bind(t); err != nil {
+		return c.JSON(http.StatusBadRequest, response("Unable to run task"))
 	}
 
-	taskChannel <- exampleTask
+	task := models.Task{
+		Name:       t.Name,
+		Type:       t.Type,
+		Parameters: t.Parameters,
+	}
 
-	// we should be sending our run task to our engine channel
-	// running a task should send it to our engine to process
-	// r := new(Task)
-	// if err := c.Bind(r); err != nil {
-	// 	return c.String(http.StatusBadRequest, "bad request")
-	// }
+	job := models.Job{
+		Task: task,
+	}
 
-	// request := Task{
-	// 	Name:        r.Name,
-	// 	Url:         r.Url,
-	// 	Method:      r.Method,
-	// 	RequestBody: r.RequestBody,
-	// }
-	// if len(r.Url) == 0 {
-	// 	return c.JSON(http.StatusBadRequest, "URL missing")
-	// }
+	// create job in database
+	result := db.Create(&job)
+	fmt.Println(result)
+	if result.Error != nil {
+		return c.JSON(http.StatusBadRequest, response("Failed to Run Task"))
+	}
 
-	// what this should do is send our task to our tasks engine to run
+	jobsChannel <- job
 
-	// jsonData, err := json.Marshal(request.RequestBody)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// fmt.Print("URL:")
-	// fmt.Println(request.Url)
-	// fmt.Print("METHOD:")
-	// fmt.Println(request.Method)
-	// fmt.Print("RequestBody:")
-	// fmt.Println(request.RequestBody)
-	// // resp, err := http.Post(request.Url, "application/json", bytes.NewBuffer(jsonData))
-	// resp, err := http.Get(request.Url)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer resp.Body.Close()
-
-	// fmt.Println(resp)
-
-	// bodyBytes, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	return c.JSON(http.StatusOK, "Running Task")
-	// return c.JSON(http.StatusOK, string(bodyBytes))
+	return c.JSON(http.StatusOK, result)
 }
 
 func SaveTask(c echo.Context) error {
 	fmt.Println("SaveTask")
 	verifyTask := new(models.Task)
 	if err := c.Bind(verifyTask); err != nil {
-		return c.String(http.StatusBadRequest, "bad request")
+		return c.JSON(http.StatusBadRequest, response("Bad Request"))
+	}
+
+	jsonParams, err := json.Marshal(verifyTask.Parameters)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, response("Error marshaling parameters"))
 	}
 
 	task := models.Task{
-		Name: verifyTask.Name,
-		Type: verifyTask.Type,
-		// Parameters: verifyTask.Parameters,
+		Name:       verifyTask.Name,
+		Type:       verifyTask.Type,
+		Parameters: datatypes.JSON(jsonParams),
 	}
+
 	result := db.Create(&task)
 
+	fmt.Println("Result of creating task")
+	fmt.Println(task)
+
 	if result.Error != nil {
-		fmt.Println("Save task error:", result.Error)
-		return c.JSON(http.StatusBadRequest, "Failed to Save Task")
+		return c.JSON(http.StatusBadRequest, response("Failed to save task"))
 	}
 
-	return c.JSON(http.StatusOK, "Task Saved")
+	return c.JSON(http.StatusOK, response("Task Saved"))
 }
 
 func UpdateTask(c echo.Context) error {
-	return c.JSON(http.StatusOK, "Update Task")
+	return c.JSON(http.StatusOK, response("Task Updated"))
 }
 
 func DeleteTask(c echo.Context) error {
 	taskId := c.Param("id")
 	fmt.Println("Deleting task")
 	fmt.Println(taskId)
-	return c.JSON(http.StatusOK, "Delete Task")
+	uuid, _ := uuid.Parse(taskId)
+	db.Delete(&models.Task{}, uuid)
+	return c.JSON(http.StatusOK, response("Task Deleted"))
 }

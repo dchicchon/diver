@@ -7,21 +7,22 @@ import (
 	"net/http"
 )
 
-var taskChannel chan<- models.Task
+var jobsChannel chan<- models.Job
 var db *gorm.DB
 
-func setTaskChannel(channel chan<- models.Task) {
-	taskChannel = channel
+func setJobsChannel(channel chan<- models.Job) {
+	jobsChannel = channel
 }
 
 func setDatabase(database *gorm.DB) {
 	db = database
 }
 
-func Setup(database *gorm.DB, channel chan models.Task, server *echo.Echo) {
+func Setup(database *gorm.DB, channel chan models.Job, server *echo.Echo) {
 	setDatabase(database)
-	setTaskChannel(channel)
+	setJobsChannel(channel)
 	setupTaskRoutes(server)
+	setupJobRoutes(server)
 	setupDisplayRoutes(server)
 }
 
@@ -33,6 +34,11 @@ func setupTaskRoutes(server *echo.Echo) {
 	taskRoutes.DELETE("/:id", DeleteTask)
 	taskRoutes.POST("/run", RunTask)
 	taskRoutes.POST("/save", SaveTask)
+}
+
+func setupJobRoutes(server *echo.Echo) {
+	jobRoutes := server.Group("/jobs")
+	jobRoutes.GET("", GetJobs)
 }
 
 func setupDisplayRoutes(server *echo.Echo) {
